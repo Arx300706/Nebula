@@ -1,5 +1,5 @@
 # Nebula Configuration
-project_name = "Nebula"
-version = "1.0.0"
-author = "Arx300706"
-description = "A simple demonstration project"
+PROJECT_NAME = "Nebula"
+VERSION = "1.0.0"
+AUTHOR = "Arx300706"
+DESCRIPTION = "A simple demonstration project"
