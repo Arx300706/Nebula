@@ -1,0 +1,14 @@
+services:
+  oracle-xe:
+    image: obsmartsoft/orcl.db.11g:latest
+    container_name: oracle
+    restart: always
+    ports:
+      - "1521:1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+    volumes:
+      - oracle-data:/u01/app/oracle
+
+volumes:
+  oracle-data:

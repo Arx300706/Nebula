@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NuvolaCloud - Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="brand"><i class="fa-solid fa-cloud"></i> NuvolaCloud</div>
+            <nav>
+                <div class="nav-item active"><i class="fa-regular fa-folder"></i> Mes Fichiers</div>
+                <div class="nav-item"><i class="fa-regular fa-clock"></i> Récents</div>
+                <div class="nav-item"><i class="fa-regular fa-trash-can"></i> Corbeille</div>
+            </nav>
+            <button class="btn btn-logout" onclick="window.location.href='/index.php'">Déconnexion</button>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Rechercher dans votre cloud...">
+                </div>
+                <div class="user-profile">
+                    <span id="user-name">Utilisateur</span>
+                    <div class="avatar">U</div>
+                </div>
+            </header>
+
+            <div class="action-bar">
+                <h2>Mes Fichiers</h2>
+                <div class="upload-buttons">
+                    <button class="btn btn-outline" onclick="triggerFolderUpload()">
+                        <i class="fa-solid fa-folder-plus"></i> Importer Dossier
+                    </button>
+                    <button class="btn btn-primary" onclick="triggerFileUpload()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Importer Fichier
+                    </button>
+                </div>
+            </div>
+            <div class="storage-info">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px;">
+                    <span>Stockage</span>
+                    <span id="storage-text">0 MB / 0 MB</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="storage-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div id="file-container" class="file-grid">
+                </div>
+
+            <div id="empty-state" class="hidden">
+                <p>Aucun fichier trouvé.</p>
+            </div>
+        </main>
+    </div>
+
+    <input type="file" id="file-input" hidden onchange="processUpload(this)" multiple>
+    <input type="file" id="folder-input" hidden onchange="processUpload(this)" webkitdirectory directory multiple>
+
+    <div id="upload-overlay" class="upload-overlay">
+        <div class="overlay-content">
+            <i class="fa-solid fa-sync fa-spin"></i>
+            <p>Téléchargement en cours...</p>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

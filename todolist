@@ -1,0 +1,142 @@
+Etapes 1: Preparation du serveur
+-Mettre une IP statique (important)
+  sudo nano /etc/netplan/*.yaml
+mon ip: 10.239.44.222
+network:
+  version: 2
+  ethernets:
+    enp0s3:
+      dhcp4: no
+      addresses:
+        - 10.239.44.222/24
+      gateway4: 10.239.44.1
+      nameservers:
+        addresses:
+          - 127.0.0.1
+          - 8.8.8.8
+ activation des modules sudo a2enmod ssl
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+creation du cle ssl local
+sudo mkdir /etc/apache2/ssl
+sudo openssl req -x509 -nodes -days 365 \
+ -newkey rsa:2048 \
+ -keyout /etc/apache2/ssl/cloud.key \
+ -out /etc/apache2/ssl/cloud.crt
+
+ Créer le dossier du site cloud
+sudo mkdir /var/www/cloud
+sudo chown -R www-data:www-data /var/www/cloud
+sudo chmod -R 755 /var/www/cloud
+
+creer une page de test
+sudo nano /var/www/cloud/index.html
+
+2️⃣5️⃣ Créer le VirtualHost HTTPS
+sudo nano /etc/apache2/sites-available/cloud-ssl.conf
+<VirtualHost *:443>
+    ServerName storage.lan
+    ServerAlias cloud.lan
+
+    DocumentRoot /var/www/cloud
+
+    SSLEngine on
+    SSLCertificateFile /etc/apache2/ssl/cloud.crt
+    SSLCertificateKeyFile /etc/apache2/ssl/cloud.key
+
+    SSLProtocol all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite HIGH:!aNULL:!MD5
+
+    <Directory /var/www/cloud>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+      ErrorLog ${APACHE_LOG_DIR}/cloud_error.log
+    CustomLog ${APACHE_LOG_DIR}/cloud_access.log combined
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName storage.lan
+    ServerAlias cloud.lan
+    Redirect permanent / https://storage.lan/
+</VirtualHost>
+
+
+
+2️⃣6️⃣ Activer le site HTTPS
+sudo a2ensite cloud-ssl
+sudo a2dissite 000-default
+sudo systemctl reload apache2
+
+
+https://storage.local
+
+Étape suivante : Bind9 (DNS local)
+-Créer une zone DNS locale
+  sudo nano /etc/bind/db.local.lan
+
+  $TTL    604800
+@       IN      SOA     ns.local.lan. admin.local.lan. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ns.local.lan.
+ns      IN      A       10.239.44.222
+
+# Sites
+storage  IN      A       10.239.44.222
+cloud    IN      A       10.239.44.222
+haga     IN      A       10.239.44.222
+panel    IN      A       10.239.44.222
+
+3️⃣ Configurer Bind9 pour la zone
+sudo nano /etc/bind/named.conf.local
+zone "local.lan" {
+    type master;
+    file "/etc/bind/db.local.lan";
+};
+
+4️⃣ Vérifier la configuration
+sudo named-checkconf
+sudo nano /etc/bind/db.lan
+$TTL    604800
+@       IN      SOA     ns.lan. admin.lan. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ns.lan.
+ns      IN      A       10.239.44.222
+
+; Sites internes
+storage  IN      A       10.239.44.222
+cloud    IN      A       10.239.44.222
+haga     IN      A       10.239.44.222
+panel    IN      A       10.239.44.222
+
+2️⃣ Configurer Bind9 pour la nouvelle zone
+sudo nano /etc/bind/named.conf.local
+zone "lan" {
+    type master;
+    file "/etc/bind/db.lan";
+};
+
+3️⃣ Vérifier et recharger Bind9
+sudo named-checkconf
+sudo named-checkzone lan /etc/bind/db.lan
+sudo systemctl restart named
+
+4️⃣ Tester
+dig storage.lan
+dig cloud.lan
+dig haga.lan
+dig panel.lan
+
+🔹 Étape suivante : finaliser les VirtualHosts Apache

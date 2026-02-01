@@ -1,0 +1,4 @@
+docker exec -it oracle bash
+sqlplus sys/oracle as sysdba 
+SELECT status FROM v$instance;
+STARTUP;
